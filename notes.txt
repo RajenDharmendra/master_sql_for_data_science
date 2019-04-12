@@ -1,0 +1,39 @@
+Notes from Master SQL for Data Science
+https://www.udemy.com/master-sql-for-data-science/
+
+-- postgres doesn't have describe functionality!
+select column_name, data_type, character_maximum_length
+from INFORMATION_SCHEMA.COLUMNS where table_name = '<name of table>';
+
+-- for text searching use like
+-- % represents wildcard
+where name like 'M%'
+
+-- 2 alternatives for not equals
+where not department = 'Sports'
+where department != 'Sports'
+
+-- cannot use equality with nulls - need to use specific is operator
+where email is not null
+where email is null
+
+-- can include list of values to check using in operator
+where department in ('Sports', 'First Aid', 'Toys')
+
+-- between is inclusive so will include someone making 80,000 and someone making 100,000
+where salary between 80000 and 100000
+
+-- order by defaults to ascending from smallest to largest value
+-- specify desc if want to order largest to smallest value
+order by employee_id desc;
+
+-- unique list of all departments in table in alphabetical order
+select distinct department
+from employees
+order by 1;
+
+-- column aliases
+select first_name as "First Name", last_name as "Last Name", salary as "Annual Salary"
+from employees;
+
+
