@@ -36,4 +36,151 @@ order by 1;
 select first_name as "First Name", last_name as "Last Name", salary as "Annual Salary"
 from employees;
 
+-- string functions
+length()
+trim() --remove whitespace
+
+-- create new columns from existing columns
+-- || concats values from tables
+select first_name || ' ' || last_name as "Full Name"
+from employees;
+
+-- use boolean expression to populate column with true or false
+-- show true values first (true is greater than false)
+select first_name || ' ' || last_name as "Full Name", (salary > 100000) as "6 Figure Salary"
+from employees
+order by 2 desc;
+
+-- start extracting from position 1 for a total of 4 characters
+select substring('this is test data' from 1 for 4)
+
+-- start extracting from position 1 for a total of 4 characters
+select substring('this is test data' from 1 for 4)
+
+-- replace string content
+select department, replace(department, 'Clothing', 'Attire')
+from departments;
+
+-- get only domain name from email
+select substring(email, position('@' in email) + 1) domain_name
+from employees
+where email is not null;
+
+-- get only domain name from email
+select substring(email, position('@' in email) + 1) domain_name
+from employees
+where email is not null;
+
+-- single row function = # of input rows = # of output rows
+-- grouping functions = aggregate input rows > single output
+
+-- round average salary data to whole number
+select round(avg(salary))
+from employees;
+
+-- get the total salary paid per department
+select department, sum(salary) 
+from employees
+group by department;
+
+-- get the total count of employees working per department
+select department, count(employee_id) 
+from employees
+group by department;
+
+-- get metrics per department
+select department, 
+count(employee_id) 
+total_num_emp, 
+round(avg(salary)) avg_salary, 
+min(salary) min_sal, 
+max(salary) max_sal
+from employees
+group by department
+order by total_num_emp desc;
+
+-- any nonaggregate columns in select list must be included in group by
+select department, gender, count(*)
+from employees
+group by department, gender
+order by department;
+
+-- use having when filtering by aggregated date
+select department, gender, count(*)
+from employees
+group by department, gender
+having count(*) > 20
+order by department;
+
+-- what is the most common first name? use count agg
+select first_name, count(*)
+from employees
+group by first_name
+order by 2 desc
+limit 1;
+
+-- get unique departments in employee table not using distinct
+select department
+from employees
+group by department;
+
+-- get count of email domain names used
+select substring(email, position('@' in email) + 1) domain_name, count(*)
+from employees
+where email is not null
+group by domain_name
+order by 2 desc;
+
+-- get count of email domain names used
+select substring(email, position('@' in email) + 1) domain_name, count(*)
+from employees
+where email is not null
+group by domain_name
+order by 2 desc;
+
+-- use subquery to check which departments from the employee table are not listed in departments table
+select distinct department
+from employees
+where department not in (select department from departments);
+
+-- use subquery in select to compare employees salary to highest paid employee in the company
+select first_name, department, (select max(salary) from employees) - salary pay_diff
+from employees;
+
+-- if any values in the subquery are less than region_id then the employee will be included
+select * from employees
+where region_id > any (select region_id from regions where country='United States');
+
+-- if all values in the subquery are less than region_id then the employee will be included
+-- better to use all over any
+select * from employees
+where region_id > all (select region_id from regions where country='United States');
+
+-- get the mode (most frequent) salary
+-- if there are multiple salaries with the same frequency give the highest salary
+select salary from
+(select salary, count(*)
+from employees
+group by salary
+order by 2 desc, salary desc
+limit 1) a;
+
+create table dupes (
+	id integer,
+	name varchar(10)
+);
+
+insert into dupes values (1, 'FRANK');
+insert into dupes values (2, 'FRANK');
+insert into dupes values (3, 'ROBERT');
+insert into dupes values (4, 'ROBERT');
+insert into dupes values (5, 'SAM');
+insert into dupes values (6, 'FRANK');
+insert into dupes values (7, 'PETER');
+
+-- return only unique data (remove dupes - use any id) and show id
+select name, min(id)
+from dupes 
+group by name
+order by name;
 
