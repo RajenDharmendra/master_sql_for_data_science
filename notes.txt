@@ -184,3 +184,10 @@ from dupes
 group by name
 order by name;
 
+-- what is the average salary of all employees of the company (excluding min and max salary)
+select round(avg(salary))
+from employees
+where salary not in (
+(select min(salary) from employees),
+(select max(salary) from employees)
+);
