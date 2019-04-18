@@ -191,3 +191,60 @@ where salary not in (
 (select min(salary) from employees),
 (select max(salary) from employees)
 );
+
+-- correlated subquery - subquery that uses values from the outer query
+-- subquery runs for each row in the original source table so can be very slow
+select first_name, salary
+from employees e1
+where salary > (select round(avg(salary)) from employees e2 where e1.department = e2.department);
+
+-- can join without using join command
+select first_name, email, division
+from employees, departments
+where email is not null 
+and employees.department = departments.department;
+
+-- inner join
+select first_name, d.department, country, region
+from employees e
+inner join regions r
+on e.region_id = r.region_id
+-- this join is joining on the results of the inner join between employees and regions
+inner join departments d 
+on e.department = d.department;
+
+-- only provide the departments that are in both tables
+-- only 23 records match
+select distinct d.department, e.department
+from employees e
+inner join departments d
+on e.department = d.department;
+
+--will include all departments from employees table regardless if they are in departments table
+--if department not in departments table then populates value null
+-- since there are 27 departments in the employees, there are 27 records
+select distinct e.department emp, d.department dep
+from employees e
+left join departments d
+on e.department = d.department;
+
+--will include all departments from departments table regardless if they are in employees table
+--if department not in employees table then populates value null
+-- since there are 24 departments in the departments table, there are 24 records
+select distinct e.department emp, d.department dep
+from employees e
+right join departments d
+on e.department = d.department;
+
+-- show only departments that exist in the employees table but do not exist in departments table
+select distinct e.department e_dep
+from employees e
+left join departments d
+on e.department = d.department
+where d.department is null;
+
+-- show both mismatches using full outer join
+select distinct e.department e_dep, d.department d_dep
+from employees e
+full outer join departments d
+on e.department = d.department;
