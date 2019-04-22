@@ -248,3 +248,13 @@ select distinct e.department e_dep, d.department d_dep
 from employees e
 full outer join departments d
 on e.department = d.department;
+
+-- expensive to run subquery in select statement because has to rerun for each row in the database
+select department, first_name,
+(select count(*) from employees e1 where e1.department = e2.department) total_emp_per_dept
+from employees e2
+group by department, first_name;
+
+-- better to use a window function
+select first_name, department, count(*) over(partition by department) total_emp_per_dept
+from employees e2;
