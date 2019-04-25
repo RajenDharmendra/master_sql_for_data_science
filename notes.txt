@@ -258,3 +258,31 @@ group by department, first_name;
 -- better to use a window function
 select first_name, department, count(*) over(partition by department) total_emp_per_dept
 from employees e2;
+
+-- use case statement to create values based on condition
+-- need to be same data type (all strings, ints, etc)
+select category, count(*) 
+from 
+(select
+case 
+	when salary < 100000 then 'under paid'
+	when salary > 100000 and salary < 160000 then 'paid well'
+	else 'executive'
+end as category
+from employees) a
+group by category;
+
+-- transpose data to columns
+select 
+sum(case when department = 'Sports' then 1 else 0 end) as sports,
+sum(case when department = 'Tools' then 1 else 0 end) as tools,
+sum(case when department = 'Clothing' then 1 else 0 end) as clothing,
+sum(case when department = 'Computers' then 1 else 0 end) as computers
+from employees;
+
+-- can use subquery with case statement
+select first_name, 
+case when region_id = 1 then (select country from regions where region_id = 1) end as region1,
+case when region_id = 2 then (select country from regions where region_id = 2) end as region2,
+case when region_id = 3 then (select country from regions where region_id = 3) end as region3
+from employees;
