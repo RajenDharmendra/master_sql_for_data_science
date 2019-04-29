@@ -192,63 +192,6 @@ where salary not in (
 (select max(salary) from employees)
 );
 
--- correlated subquery - subquery that uses values from the outer query
--- subquery runs for each row in the original source table so can be very slow
-select first_name, salary
-from employees e1
-where salary > (select round(avg(salary)) from employees e2 where e1.department = e2.department);
-
--- can join without using join command
-select first_name, email, division
-from employees, departments
-where email is not null 
-and employees.department = departments.department;
-
--- inner join
-select first_name, d.department, country, region
-from employees e
-inner join regions r
-on e.region_id = r.region_id
--- this join is joining on the results of the inner join between employees and regions
-inner join departments d 
-on e.department = d.department;
-
--- only provide the departments that are in both tables
--- only 23 records match
-select distinct d.department, e.department
-from employees e
-inner join departments d
-on e.department = d.department;
-
---will include all departments from employees table regardless if they are in departments table
---if department not in departments table then populates value null
--- since there are 27 departments in the employees, there are 27 records
-select distinct e.department emp, d.department dep
-from employees e
-left join departments d
-on e.department = d.department;
-
---will include all departments from departments table regardless if they are in employees table
---if department not in employees table then populates value null
--- since there are 24 departments in the departments table, there are 24 records
-select distinct e.department emp, d.department dep
-from employees e
-right join departments d
-on e.department = d.department;
-
--- show only departments that exist in the employees table but do not exist in departments table
-select distinct e.department e_dep
-from employees e
-left join departments d
-on e.department = d.department
-where d.department is null;
-
--- show both mismatches using full outer join
-select distinct e.department e_dep, d.department d_dep
-from employees e
-full outer join departments d
-on e.department = d.department;
-
 -- expensive to run subquery in select statement because has to rerun for each row in the database
 select department, first_name,
 (select count(*) from employees e1 where e1.department = e2.department) total_emp_per_dept
@@ -286,3 +229,116 @@ case when region_id = 1 then (select country from regions where region_id = 1) e
 case when region_id = 2 then (select country from regions where region_id = 2) end as region2,
 case when region_id = 3 then (select country from regions where region_id = 3) end as region3
 from employees;
+
+-- correlated subquery - subquery that uses values from the outer query
+-- subquery runs for each row in the original source table so can be very slow
+select first_name, salary
+from employees e1
+where salary > (select round(avg(salary)) from employees e2 where e1.department = e2.department);
+
+select first_name, salary
+from employees e1
+where salary > 
+-- subquery runs for every row in outer query
+-- correlate values on a common column value
+(select round(avg(salary)) from employees e2 where e1.department = e2.department);
+
+-- can add correlated subquery as a column value
+select first_name, salary, 
+(select round(avg(salary)) from employees e2 where e1.department = e2.department) as avg_dept_salary
+from employees e1;
+
+-- get department that have more than 38 employees using correlated subquery
+-- add second column with highest paid employees salary
+select department,
+(select max(salary) from employees e2 where e2.department = d.department) max_dept_salary
+from departments d
+where 38 < (select count(*) from employees e1 where e1.department = d.department);
+
+-- using correlated subqueries 
+select department, first_name, salary,
+case
+	when salary = (select max(salary) from employees e3 where e.department = e3.department) then 'HIGHEST SALARY'
+	when salary = (select min(salary) from employees e4 where e.department = e4.department) then 'LOWEST SALARY'
+end as salary_in_department
+from employees e
+where salary = (select max(salary) from employees e1 where e.department = e1.department)
+or salary = (select min(salary) from employees e2 where e.department = e2.department)
+order by department, salary desc;
+
+-- can join without using join command
+select first_name, email, division
+from employees, departments
+where email is not null 
+and employees.department = departments.department;
+
+-- inner join
+select first_name, d.department, country, region
+from employees e
+inner join regions r
+on e.region_id = r.region_id
+-- this join is joining on the results of the inner join between employees and regions
+inner join departments d 
+on e.department = d.department;
+
+-- left join - provide value in left table and fill right table with null
+-- right join - provide value in right table and fill left table with null
+-- outer join - provider value if available and fill any lack of association with null
+
+-- show only departments that exist in employees table, not departments table
+select distinct e.department
+from employees e left join departments d 
+on e.department = d.department
+where d.department is null;
+
+-- get all distinct values from multiple datasets
+select department from employees
+union
+select department from departments;
+
+-- get all values (including repeats) from multiple datasets
+select department from employees
+union all
+select department from departments;
+
+-- except takes values from first dataset and removes from second dataset
+select department from employees
+except
+select department from departments;
+
+select department from departments
+except
+select department from employees;
+
+-- get department with total employee count per department
+-- at the end have a total column with a sum of all employees
+select department, count(*) 
+from employees
+group by department
+union all
+select 'TOTAL', count(*)
+from employees;
+
+-- cartesian product results in every possible combination of rows
+-- 24 department rows x 1000 employee rows = 2400 resulting rows
+select * from employees, departments;
+-- cross join is a more explicit way to express the same thing
+select * from employees cross join departments;
+
+-- compute sum of salary for every 90 day period
+-- use correlated subquery to check a range of data
+select hire_date, salary, 
+(select sum(salary) from employees e2 
+ where e2.hire_date between e1.hire_date - 90 and e1.hire_date) as spending_budget
+from employees e1
+order by hire_date;
+
+-- view = virtual table
+-- not an actual table you can insert and delete from
+-- allows you to save a query into a virtual table for reuse
+-- usually prefix with v_ to clarify it is a view not a table
+create view v_employee_information as
+select first_name, email, e.department, salary, division, region, country
+from employees e, departments d, regions r
+where e.department = d.department
+and e.region_id = r.region_id;
