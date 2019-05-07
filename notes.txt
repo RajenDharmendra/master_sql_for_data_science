@@ -342,3 +342,31 @@ select first_name, email, e.department, salary, division, region, country
 from employees e, departments d, regions r
 where e.department = d.department
 and e.region_id = r.region_id;
+
+-- lead function
+select first_name, last_name, salary, lead(salary) over() next_salary
+from employees;
+
+-- lag function
+select first_name, last_name, salary, lag(salary) over() next_salary
+from employees;
+
+-- group by multiple columns
+select continent, country, city, sum(units_sold)
+from sales
+group by grouping sets(continent, country, city);
+
+select continent, country, city, sum(units_sold)
+from sales
+-- empty bracket will get the sum of all units sold
+group by grouping sets(continent, country, city, ());
+
+-- group by multiple combos of columns
+select continent, country, city, sum(units_sold)
+from sales
+group by rollup(continent, country, city);
+
+-- group by all possible combos of columns
+select continent, country, city, sum(units_sold)
+from sales
+group by cube(continent, country, city);
