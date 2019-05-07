@@ -343,6 +343,9 @@ from employees e, departments d, regions r
 where e.department = d.department
 and e.region_id = r.region_id;
 
+-- why are correlated subqueries slower that non-correlated subqueries and joins?
+the subquery has to run for every column in the source table, while non-correlated subqueries and joins run once for the query
+
 -- lead function
 select first_name, last_name, salary, lead(salary) over() next_salary
 from employees;
